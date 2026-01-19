@@ -630,6 +630,10 @@ class StockAnalysisPipeline:
                         non_wechat_success = self.notifier.send_to_telegram(report) or non_wechat_success
                     elif channel == NotificationChannel.EMAIL:
                         non_wechat_success = self.notifier.send_to_email(report) or non_wechat_success
+                    elif channel == NotificationChannel.PUSHOVER:
+                        non_wechat_success = self.notifier.send_to_pushover(report) or non_wechat_success
+                    elif channel == NotificationChannel.PUSHPLUS:
+                        non_wechat_success = self.notifier.send_to_pushplus(report) or non_wechat_success
                     elif channel == NotificationChannel.CUSTOM:
                         non_wechat_success = self.notifier.send_to_custom(report) or non_wechat_success
                     else:
