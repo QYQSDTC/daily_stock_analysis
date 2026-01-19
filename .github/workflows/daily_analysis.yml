@@ -88,6 +88,11 @@ jobs:
           # 自选股列表 (从 secrets 或使用默认值)
           STOCK_LIST: ${{ secrets.STOCK_LIST || '600519' }}
           
+          # 擒龙策略配置
+          DRAGON_HUNT_ENABLED: ${{ secrets.DRAGON_HUNT_ENABLED || 'true' }}
+          DRAGON_HUNT_AI_ENABLED: ${{ secrets.DRAGON_HUNT_AI_ENABLED || 'true' }}
+          DRAGON_HUNT_TOP_N: ${{ secrets.DRAGON_HUNT_TOP_N || '5' }}
+          
           # 其他配置
           LOG_LEVEL: INFO
           DATA_DAYS: 60
