@@ -244,15 +244,3 @@ daily_stock_analysis/
 ---
 
 **如果觉得有用，请给个 ⭐ Star 支持一下！**
-
-<!-- 赞赏锚点 -->
-<a id="sponsor"></a>
-###### ☕ 请我喝杯咖啡
-- 如果觉得本项目对你有帮助且行有余力，可以请我喝杯咖啡，支持项目的持续维护与迭代；不赞赏也完全不影响使用。   
-<small>（赞赏时可备注联系方式，方便私信致谢与后续交流反馈）</small>
-- 感谢支持, 祝您股市长虹，拿主力当提款机。
-
-<div align="center">
-  <img src="./sources/wechatpay.jpg" alt="WeChat Pay" width="200" style="margin-right: 20px;">
-  <img src="./sources/alipay.jpg" alt="Alipay" width="200">
-</div>
