@@ -80,6 +80,10 @@ class Config:
     pushover_user_key: Optional[str] = None  # 用户 Key（https://pushover.net 获取）
     pushover_api_token: Optional[str] = None  # 应用 API Token
     
+    # PushPlus 配置（微信推送）
+    pushplus_token: Optional[str] = None  # 用户 Token（关注 pushplus 公众号获取）
+    pushplus_topic: Optional[str] = None  # 群组编号（一对多推送，留空则仅推送给自己）
+    
     # 自定义 Webhook（支持多个，逗号分隔）
     # 适用于：钉钉、Discord、Slack、自建服务等任意支持 POST JSON 的 Webhook
     custom_webhook_urls: List[str] = field(default_factory=list)
@@ -206,6 +210,8 @@ class Config:
             email_receivers=[r.strip() for r in os.getenv('EMAIL_RECEIVERS', '').split(',') if r.strip()],
             pushover_user_key=os.getenv('PUSHOVER_USER_KEY'),
             pushover_api_token=os.getenv('PUSHOVER_API_TOKEN'),
+            pushplus_token=os.getenv('PUSHPLUS_TOKEN'),
+            pushplus_topic=os.getenv('PUSHPLUS_TOPIC'),
             custom_webhook_urls=[u.strip() for u in os.getenv('CUSTOM_WEBHOOK_URLS', '').split(',') if u.strip()],
             custom_webhook_bearer_token=os.getenv('CUSTOM_WEBHOOK_BEARER_TOKEN'),
             single_stock_notify=os.getenv('SINGLE_STOCK_NOTIFY', 'false').lower() == 'true',
@@ -287,7 +293,8 @@ class Config:
             self.feishu_webhook_url or
             (self.telegram_bot_token and self.telegram_chat_id) or
             (self.email_sender and self.email_password) or
-            (self.pushover_user_key and self.pushover_api_token)
+            (self.pushover_user_key and self.pushover_api_token) or
+            self.pushplus_token
         )
         if not has_notification:
             warnings.append("提示：未配置通知渠道，将不发送推送通知")
