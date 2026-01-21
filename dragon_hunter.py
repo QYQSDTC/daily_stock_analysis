@@ -118,9 +118,10 @@ SENTIMENT_ANALYSIS_PROMPT = """你是一位专业的 A 股短线交易分析师�
 # ========================================
 # Gemini 龙头股分析 Prompt
 # ========================================
-DRAGON_ANALYSIS_PROMPT = """你是一位专业的 A 股短线交易分析师，擅长分析龙头股的投资价值。
+DRAGON_ANALYSIS_PROMPT = """你是一位专业的 A 股短线情绪交易分析师，擅长从市场情绪和趋势强度角度分析龙头股。
 
-请根据以下龙头股数据，结合当前市场情绪，进行深度分析。
+**重要**：这是纯短线情绪博弈分析，不要用价值投资思维，不要提什么"回踩5日线"、"业绩支撑"之类的内容。
+核心关注：辨识度、人气、资金合力、情绪周期位置、接力意愿。
 
 ## 当前市场情绪
 - 情绪周期：{sentiment_cycle}
@@ -144,12 +145,12 @@ DRAGON_ANALYSIS_PROMPT = """你是一位专业的 A 股短线交易分析师，�
 ### 技术面数据（如有）
 {technical_data}
 
-## 龙头股评估维度
-1. **辨识度**：是否市场公认龙头、板块地位
-2. **资金认可**：换手率、成交额是否充分
-3. **业绩支撑**：是否有业绩/预期驱动
-4. **位置安全**：当前位置是否适合介入
-5. **空间预期**：还有多少上涨空间
+## 短线情绪分析维度（核心）
+1. **辨识度与人气**：市场是否认可其龙头地位、是否有足够关注度和跟风盘
+2. **资金合力程度**：封单力度、换手是否健康、是否有一致性预期
+3. **情绪周期卡位**：当前连板高度在梯队中的位置、是否有空间溢价
+4. **接力意愿判断**：明日是否有资金愿意接力、分歧还是一致
+5. **趋势强度**：上涨是否有持续性、是否处于加速阶段
 
 请严格按照以下 JSON 格式输出分析结果：
 
@@ -160,42 +161,41 @@ DRAGON_ANALYSIS_PROMPT = """你是一位专业的 A 股短线交易分析师，�
     
     "dragon_assessment": {{
         "recognition_level": "高/中/低",
-        "recognition_reason": "辨识度分析",
-        "sector_position": "板块地位描述",
+        "recognition_reason": "辨识度与人气分析（关注度、跟风程度）",
+        "sector_position": "题材卡位（是否主流题材龙头）",
         "is_true_dragon": true/false
     }},
     
     "capital_analysis": {{
-        "turnover_status": "换手率评价（充分/适中/不足/过高）",
-        "volume_meaning": "量能含义",
-        "main_force_action": "主力动向判断"
+        "turnover_status": "换手率评价（健康/偏高需换手/筹码锁定）",
+        "volume_meaning": "量能含义（放量抢筹/缩量惜售/放量分歧）",
+        "main_force_action": "资金合力判断（一致做多/有分歧/主力出货迹象）"
     }},
     
-    "fundamental_check": {{
-        "has_performance": true/false,
-        "has_expectation": true/false,
-        "catalyst_quality": "催化剂质量评价",
-        "sustainability": "持续性判断"
+    "momentum_analysis": {{
+        "trend_strength": "趋势强度（强势加速/正常上涨/走弱）",
+        "continuation_probability": "延续概率判断",
+        "acceleration_stage": "加速阶段（启动期/主升期/末期）"
     }},
     
-    "position_analysis": {{
-        "current_position": "低位首板/中位加速/高位博弈",
-        "entry_safety": "介入安全度（安全/中性/危险）",
-        "support_level": "支撑位参考",
-        "pressure_level": "压力位参考"
+    "emotion_position": {{
+        "ladder_position": "梯队位置（空间板/中位/低位）",
+        "space_premium": "是否有空间溢价（打开高度/卡位优势）",
+        "cycle_timing": "情绪周期时机（顺周期/逆周期）",
+        "relay_willingness": "接力意愿判断（强/一般/弱）"
     }},
     
-    "space_expectation": {{
-        "upside_space": "上涨空间预期",
-        "target_price": "目标价位（如适用）",
-        "holding_period": "建议持有周期"
+    "tomorrow_expectation": {{
+        "open_expectation": "明日预期（高开/平开/低开）",
+        "intraday_pattern": "盘中走势预判（冲高/震荡/回落）",
+        "consensus_or_divergence": "一致还是分歧（一致上涨/分歧换手/一致下跌）"
     }},
     
     "operation_suggestion": {{
         "action": "强烈买入/买入/观望/回避",
-        "entry_timing": "介入时机建议",
+        "entry_timing": "介入时机（竞价抢筹/盘中分歧低吸/回封确认）",
         "position_size": "建议仓位",
-        "stop_loss": "止损位置"
+        "exit_strategy": "退出策略（破板止损/不及预期走人/持股待涨）"
     }},
     
     "comprehensive_score": 75,
@@ -205,12 +205,16 @@ DRAGON_ANALYSIS_PROMPT = """你是一位专业的 A 股短线交易分析师，�
 ```
 
 ## 重要要求
-1. 只输出 JSON，不要输出任何其他文字
-2. 所有字符串值必须简短，不超过50字
-3. 不要在字符串中使用换行符
-4. 布尔值使用小写 true/false
-5. comprehensive_score 必须是数字（0-100）
-6. 确保 JSON 格式正确，可以被解析"""
+1. **必须严格按照上述 JSON 格式输出**，必须包含 dragon_assessment、capital_analysis、momentum_analysis、emotion_position、tomorrow_expectation、operation_suggestion 这些顶级字段
+2. 只输出 JSON，不要输出任何其他文字
+3. 所有字符串值必须简短，不超过50字
+4. 不要在字符串中使用换行符
+5. 布尔值使用小写 true/false
+6. comprehensive_score 必须是数字（0-100）
+7. 确保 JSON 格式正确，可以被解析
+8. **禁止**使用价值投资术语（如：业绩、估值、回踩均线、价值低估等）
+9. **聚焦**情绪博弈术语（如：辨识度、人气、合力、分歧、一致、接力、空间溢价等）
+10. **禁止使用其他格式**：不要使用 sentiment_score、dashboard、trend_prediction 等字段，这是错误的格式"""
 
 
 class MarketSentiment(Enum):
@@ -303,7 +307,7 @@ class SentimentData:
 
 @dataclass
 class DragonAIAnalysis:
-    """龙头股 AI 分析结果"""
+    """龙头股 AI 分析结果（情绪交易视角）"""
 
     code: str
     name: str
@@ -311,31 +315,34 @@ class DragonAIAnalysis:
     # 龙头评估
     recognition_level: str = ""  # 辨识度：高/中/低
     is_true_dragon: bool = False  # 是否真龙头
-    sector_position: str = ""  # 板块地位
+    sector_position: str = ""  # 题材卡位
 
     # 资金分析
     turnover_status: str = ""  # 换手率评价
-    main_force_action: str = ""  # 主力动向
+    main_force_action: str = ""  # 资金合力判断
+    volume_meaning: str = ""  # 量能含义
 
-    # 基本面
-    catalyst_quality: str = ""  # 催化剂质量
-    sustainability: str = ""  # 持续性判断
+    # 趋势强度分析
+    trend_strength: str = ""  # 趋势强度
+    continuation_probability: str = ""  # 延续概率
+    acceleration_stage: str = ""  # 加速阶段
 
-    # 位置分析
-    current_position: str = ""  # 当前位置
-    entry_safety: str = ""  # 介入安全度
-    support_level: str = ""  # 支撑位
-    pressure_level: str = ""  # 压力位
+    # 情绪周期卡位
+    ladder_position: str = ""  # 梯队位置
+    space_premium: str = ""  # 空间溢价
+    cycle_timing: str = ""  # 情绪周期时机
+    relay_willingness: str = ""  # 接力意愿
 
-    # 空间预期
-    upside_space: str = ""  # 上涨空间
-    target_price: str = ""  # 目标价
+    # 明日预期
+    open_expectation: str = ""  # 明日开盘预期
+    intraday_pattern: str = ""  # 盘中走势预判
+    consensus_or_divergence: str = ""  # 一致还是分歧
 
     # 操作建议
     action: str = ""  # 操作建议
     entry_timing: str = ""  # 介入时机
     position_size: str = ""  # 建议仓位
-    stop_loss: str = ""  # 止损位
+    exit_strategy: str = ""  # 退出策略
 
     # 综合评价
     comprehensive_score: int = 0  # 综合评分
@@ -1080,6 +1087,133 @@ class DragonHunter:
 
         return None
 
+    def _try_adapt_wrong_format(self, data: dict, code: str, name: str) -> Optional[dict]:
+        """尝试将错误格式的响应适配为正确格式
+
+        有时 AI 会返回情绪分析格式而非龙头分析格式，这里尝试转换
+        """
+        # 检测是否是情绪分析格式（包含 sentiment_score, dashboard 等字段）
+        is_sentiment_format = any(
+            key in data for key in ["sentiment_score", "dashboard", "trend_prediction", "analysis_summary"]
+        )
+
+        if not is_sentiment_format:
+            return None
+
+        logger.info(f"[AI龙头] 检测到情绪分析格式，尝试适配转换...")
+
+        try:
+            # 从错误格式中提取可用信息
+            dashboard = data.get("dashboard", {})
+            core_conclusion = dashboard.get("core_conclusion", {}) if isinstance(dashboard, dict) else {}
+
+            # 提取各种可能的字段
+            trend_analysis = data.get("trend_analysis", {})
+            technical_analysis = data.get("technical_analysis", {})
+            fundamental_analysis = data.get("fundamental_analysis", {})
+            market_sentiment = data.get("market_sentiment", {})
+
+            # 从 trend_prediction 推断趋势强度
+            trend_prediction = str(data.get("trend_prediction", ""))
+            trend_strength = "正常上涨"
+            if "强烈看多" in trend_prediction or "大涨" in trend_prediction:
+                trend_strength = "强势加速"
+            elif "看空" in trend_prediction or "下跌" in trend_prediction:
+                trend_strength = "走弱"
+
+            # 从 operation_advice 推断操作建议
+            operation_advice = str(data.get("operation_advice", "观望"))
+            action_map = {
+                "买入": "买入",
+                "强烈买入": "强烈买入",
+                "观望": "观望",
+                "卖出": "回避",
+                "持有": "观望",
+            }
+            action = action_map.get(operation_advice, "观望")
+
+            # 提取置信度
+            confidence = str(data.get("confidence_level", "中"))
+            recognition_level = "高" if confidence == "高" else ("低" if confidence == "低" else "中")
+
+            # 从 key_points 提取风险警告
+            key_points = data.get("key_points", [])
+            risk_warning = data.get("risk_warning", [])
+            if isinstance(risk_warning, str):
+                risk_warning = [risk_warning] if risk_warning else []
+            if not risk_warning and isinstance(key_points, list):
+                risk_warning = [p for p in key_points if "风险" in str(p) or "注意" in str(p)][:2]
+
+            # 从 buy_reason 或 analysis_summary 提取结论
+            buy_reason = str(data.get("buy_reason", ""))
+            analysis_summary = str(data.get("analysis_summary", ""))
+            one_sentence = (
+                buy_reason[:30] if buy_reason else (analysis_summary[:30] if analysis_summary else "情绪面待观察")
+            )
+
+            # 提取评分
+            score = data.get("sentiment_score", 50)
+            if isinstance(score, str):
+                try:
+                    score = int(float(score.replace("%", "")))
+                except (ValueError, TypeError):
+                    score = 50
+
+            # 构建适配后的数据结构
+            adapted_data = {
+                "stock_code": code,
+                "stock_name": name,
+                "dragon_assessment": {
+                    "recognition_level": recognition_level,
+                    "recognition_reason": str(
+                        core_conclusion.get("one_sentence", analysis_summary[:50] if analysis_summary else "待分析")
+                    ),
+                    "sector_position": str(
+                        fundamental_analysis.get("sector_position", data.get("sector_position", "待确认"))
+                    ),
+                    "is_true_dragon": confidence == "高" and action in ["买入", "强烈买入"],
+                },
+                "capital_analysis": {
+                    "turnover_status": str(
+                        technical_analysis.get("volume_analysis", data.get("volume_analysis", "待分析"))
+                    ),
+                    "volume_meaning": str(data.get("volume_analysis", "待分析")),
+                    "main_force_action": str(market_sentiment.get("main_force_trend", "待观察")),
+                },
+                "momentum_analysis": {
+                    "trend_strength": trend_strength,
+                    "continuation_probability": str(data.get("short_term_outlook", "待观察")),
+                    "acceleration_stage": str(trend_analysis.get("current_stage", "待判断")),
+                },
+                "emotion_position": {
+                    "ladder_position": "待分析",
+                    "space_premium": "待分析",
+                    "cycle_timing": str(market_sentiment.get("cycle_position", "待判断")),
+                    "relay_willingness": str(market_sentiment.get("follow_willingness", "待观察")),
+                },
+                "tomorrow_expectation": {
+                    "open_expectation": str(data.get("short_term_outlook", "待预判")),
+                    "intraday_pattern": "待观察",
+                    "consensus_or_divergence": "待观察",
+                },
+                "operation_suggestion": {
+                    "action": action,
+                    "entry_timing": "盘中观察",
+                    "position_size": "轻仓试探",
+                    "exit_strategy": "严格止损",
+                },
+                "comprehensive_score": score,
+                "one_sentence_conclusion": one_sentence,
+                "risk_warning": risk_warning if isinstance(risk_warning, list) else [],
+            }
+
+            logger.info(f"[AI龙头] 格式适配成功")
+            return adapted_data
+
+        except Exception as e:
+            logger.warning(f"[AI龙头] 格式适配失败: {e}")
+            return None
+
     def _parse_dragon_ai_response(self, response_text: str, code: str, name: str) -> Optional[DragonAIAnalysis]:
         """解析龙头股 AI 分析响应"""
         try:
@@ -1158,14 +1292,21 @@ class DragonHunter:
             if "dragon_assessment" not in data:
                 logger.warning(f"[AI龙头] 响应格式不正确，缺少 dragon_assessment 字段")
                 logger.info(f"[AI龙头] 返回的字段: {list(data.keys())}")
-                return None
 
-            # 解析各字段
+                # 尝试适配错误格式
+                adapted_data = self._try_adapt_wrong_format(data, code, name)
+                if adapted_data:
+                    data = adapted_data
+                    logger.info(f"[AI龙头] 使用适配后的数据继续处理")
+                else:
+                    return None
+
+            # 解析各字段（情绪交易视角）
             dragon_assess = data.get("dragon_assessment", {})
             capital = data.get("capital_analysis", {})
-            fundamental = data.get("fundamental_check", {})
-            position = data.get("position_analysis", {})
-            space = data.get("space_expectation", {})
+            momentum = data.get("momentum_analysis", {})
+            emotion_pos = data.get("emotion_position", {})
+            tomorrow = data.get("tomorrow_expectation", {})
             operation = data.get("operation_suggestion", {})
 
             # 处理 comprehensive_score 可能是字符串或数字的情况
@@ -1179,23 +1320,33 @@ class DragonHunter:
             return DragonAIAnalysis(
                 code=code,
                 name=name,
+                # 龙头评估
                 recognition_level=str(dragon_assess.get("recognition_level", "")),
                 is_true_dragon=bool(dragon_assess.get("is_true_dragon", False)),
                 sector_position=str(dragon_assess.get("sector_position", "")),
+                # 资金分析
                 turnover_status=str(capital.get("turnover_status", "")),
                 main_force_action=str(capital.get("main_force_action", "")),
-                catalyst_quality=str(fundamental.get("catalyst_quality", "")),
-                sustainability=str(fundamental.get("sustainability", "")),
-                current_position=str(position.get("current_position", "")),
-                entry_safety=str(position.get("entry_safety", "")),
-                support_level=str(position.get("support_level", "")),
-                pressure_level=str(position.get("pressure_level", "")),
-                upside_space=str(space.get("upside_space", "")),
-                target_price=str(space.get("target_price", "")),
+                volume_meaning=str(capital.get("volume_meaning", "")),
+                # 趋势强度
+                trend_strength=str(momentum.get("trend_strength", "")),
+                continuation_probability=str(momentum.get("continuation_probability", "")),
+                acceleration_stage=str(momentum.get("acceleration_stage", "")),
+                # 情绪周期卡位
+                ladder_position=str(emotion_pos.get("ladder_position", "")),
+                space_premium=str(emotion_pos.get("space_premium", "")),
+                cycle_timing=str(emotion_pos.get("cycle_timing", "")),
+                relay_willingness=str(emotion_pos.get("relay_willingness", "")),
+                # 明日预期
+                open_expectation=str(tomorrow.get("open_expectation", "")),
+                intraday_pattern=str(tomorrow.get("intraday_pattern", "")),
+                consensus_or_divergence=str(tomorrow.get("consensus_or_divergence", "")),
+                # 操作建议
                 action=str(operation.get("action", "")),
                 entry_timing=str(operation.get("entry_timing", "")),
                 position_size=str(operation.get("position_size", "")),
-                stop_loss=str(operation.get("stop_loss", "")),
+                exit_strategy=str(operation.get("exit_strategy", "")),
+                # 综合评价
                 comprehensive_score=score,
                 one_sentence_conclusion=str(data.get("one_sentence_conclusion", "")),
                 risk_warning=data.get("risk_warning", []) if isinstance(data.get("risk_warning"), list) else [],
@@ -1278,17 +1429,19 @@ class DragonHunter:
         猎龙：在强势板块中寻找龙头股
 
         筛选标准：
-        1. 涨停或大涨（>5%）
-        2. 换手充分（5%-15%最佳）
-        3. 成交额适中（1-20亿）
-        4. 有业绩/预期支撑
+        1. 流通市值 >= 100亿（硬性条件）
+        2. 涨停或大涨（>5%）
+        3. 换手充分（5%-15%最佳）
+        4. 成交额适中（1-20亿）
         """
         import akshare as ak
 
         candidates = []
         sector_names = [s.name for s in sectors[:5]]  # 取前5个强势板块
+        min_circ_mv = 100  # 最低流通市值要求（亿）
 
         logger.info(f"[猎龙] 目标板块: {sector_names}")
+        logger.info(f"[猎龙] 市值筛选: >= {min_circ_mv}亿")
 
         # 1. 获取涨停池的股票作为龙头候选
         limit_up_df = self._call_api_with_retry(
@@ -1303,6 +1456,12 @@ class DragonHunter:
             for _, row in limit_up_df.iterrows():
                 code = str(row.get("代码", ""))
                 name = str(row.get("名称", ""))
+                circ_mv = self._safe_float(row.get("流通市值")) / 1e8  # 转亿
+
+                # 市值筛选：小于100亿跳过
+                if circ_mv < min_circ_mv:
+                    logger.debug(f"[猎龙] 跳过 {name}({code})，市值 {circ_mv:.1f}亿 < {min_circ_mv}亿")
+                    continue
 
                 candidate = DragonCandidate(
                     code=code,
@@ -1310,7 +1469,7 @@ class DragonHunter:
                     change_pct=self._safe_float(row.get("涨跌幅", 10.0)),
                     turnover_rate=self._safe_float(row.get("换手率")),
                     amount=self._safe_float(row.get("成交额")) / 1e8,  # 转亿
-                    circ_mv=self._safe_float(row.get("流通市值")) / 1e8,  # 转亿
+                    circ_mv=circ_mv,
                     continuous_boards=self._safe_int(row.get("连板数", 1)),
                 )
 
@@ -1349,10 +1508,11 @@ class DragonHunter:
         return candidates[:15]
 
     def _get_sector_leaders(self, sector_name: str) -> List[DragonCandidate]:
-        """获取板块领涨股"""
+        """获取板块领涨股（市值>=100亿）"""
         import akshare as ak
 
         leaders = []
+        min_circ_mv = 100  # 最低流通市值要求（亿）
 
         try:
             # 获取板块成分股
@@ -1368,18 +1528,28 @@ class DragonHunter:
                 # 筛选涨幅>3%的股票
                 if "涨跌幅" in df.columns:
                     df["涨跌幅"] = pd.to_numeric(df["涨跌幅"], errors="coerce")
-                    strong_df = df[df["涨跌幅"] >= 3].nlargest(5, "涨跌幅")
+                    strong_df = df[df["涨跌幅"] >= 3].nlargest(10, "涨跌幅")  # 多取一些，因为要过滤市值
 
                     for _, row in strong_df.iterrows():
+                        circ_mv = self._safe_float(row.get("流通市值")) / 1e8
+
+                        # 市值筛选：小于100亿跳过
+                        if circ_mv < min_circ_mv:
+                            continue
+
                         candidate = DragonCandidate(
                             code=str(row.get("代码", "")),
                             name=str(row.get("名称", "")),
                             change_pct=self._safe_float(row.get("涨跌幅")),
                             turnover_rate=self._safe_float(row.get("换手率")),
                             amount=self._safe_float(row.get("成交额")) / 1e8,
-                            circ_mv=self._safe_float(row.get("流通市值")) / 1e8,
+                            circ_mv=circ_mv,
                         )
                         leaders.append(candidate)
+
+                        # 最多取5只
+                        if len(leaders) >= 5:
+                            break
 
         except Exception as e:
             logger.warning(f"[猎龙] 获取板块 {sector_name} 成分股失败: {e}")
@@ -1442,16 +1612,16 @@ class DragonHunter:
         score += amount_score
         details["成交额"] = amount_score
 
-        # 4. 流通市值（15分）- 偏好中小市值
+        # 4. 流通市值（15分）- 100亿以上，偏好100-300亿
         circ_mv = candidate.circ_mv
-        if 20 <= circ_mv <= 100:
-            mv_score = 15  # 最佳
-        elif 10 <= circ_mv < 20 or 100 < circ_mv <= 200:
-            mv_score = 10  # 可接受
-        elif circ_mv < 10:
-            mv_score = 8  # 小盘股波动大
+        if 100 <= circ_mv <= 300:
+            mv_score = 15  # 最佳区间：流动性好且弹性尚可
+        elif 300 < circ_mv <= 500:
+            mv_score = 12  # 中大盘，稳定性好
+        elif 500 < circ_mv <= 1000:
+            mv_score = 8  # 大盘股，弹性较小
         else:
-            mv_score = 5  # 大盘股弹性小
+            mv_score = 5  # 超大盘或不符合条件
         score += mv_score
         details["流通市值"] = mv_score
 
@@ -1605,29 +1775,36 @@ class DragonHunter:
                 lines.append("")
                 lines.append("#### 🤖 AI 情绪深度分析")
                 core = ai.get("core_analysis", {})
-                if core:
+                if core and isinstance(core, dict):
                     lines.append(f"- **情绪状态**: {core.get('emotion_status', '')}")
                     lines.append(f"- **市场主线**: {core.get('main_line', '')}")
                     lines.append(f"- **资金流向**: {core.get('money_flow', '')}")
                     lines.append(f"- **风险等级**: {core.get('risk_level', '')}")
 
                 ladder = ai.get("ladder_analysis", {})
-                if ladder:
+                if ladder and isinstance(ladder, dict):
                     lines.append(f"- **空间高度**: {ladder.get('space_height', '')}")
                     lines.append(f"- **梯队健康**: {ladder.get('ladder_health', '')}")
 
                 op = ai.get("operation_advice", {})
                 if op:
-                    lines.append(f"- **策略建议**: {op.get('strategy', '')}")
-                    lines.append(f"- **关注方向**: {op.get('focus_direction', '')}")
+                    if isinstance(op, dict):
+                        lines.append(f"- **策略建议**: {op.get('strategy', '')}")
+                        lines.append(f"- **关注方向**: {op.get('focus_direction', '')}")
+                    else:
+                        # operation_advice 可能是字符串
+                        lines.append(f"- **操作建议**: {op}")
 
                 tomorrow = ai.get("tomorrow_outlook", {})
-                if tomorrow:
+                if tomorrow and isinstance(tomorrow, dict):
                     lines.append(f"- **明日展望**: {tomorrow.get('emotion_trend', '')}")
 
                 risks = ai.get("risk_warning", [])
                 if risks:
-                    lines.append(f"- **风险提示**: {'; '.join(risks)}")
+                    if isinstance(risks, list):
+                        lines.append(f"- **风险提示**: {'; '.join(str(r) for r in risks)}")
+                    else:
+                        lines.append(f"- **风险提示**: {risks}")
         else:
             lines.append("暂无情绪数据")
         lines.append("")
@@ -1659,10 +1836,10 @@ class DragonHunter:
             lines.append("暂无符合条件的龙头候选")
         lines.append("")
 
-        # AI 龙头深度分析
+        # AI 龙头深度分析（情绪交易视角）
         ai_dragons = [d for d in result.dragon_candidates if d.ai_analysis is not None]
         if ai_dragons:
-            lines.append("### 四、🤖 龙头股 AI 深度分析")
+            lines.append("### 四、🤖 龙头股 AI 情绪分析")
             lines.append("")
             for d in ai_dragons:
                 ai = d.ai_analysis
@@ -1673,25 +1850,39 @@ class DragonHunter:
                 lines.append("")
                 lines.append(f"- **AI 综合评分**: {ai.comprehensive_score}/100")
                 lines.append(f"- **操作建议**: {ai.action}")
-                lines.append(f"- **龙头辨识度**: {ai.recognition_level}")
-                lines.append(f"- **真龙判定**: {'是 ✓' if ai.is_true_dragon else '否'}")
-                lines.append(f"- **换手率状态**: {ai.turnover_status}")
-                lines.append(f"- **主力动向**: {ai.main_force_action}")
-                lines.append(f"- **当前位置**: {ai.current_position}")
-                lines.append(f"- **介入安全度**: {ai.entry_safety}")
-                if ai.support_level:
-                    lines.append(f"- **支撑位**: {ai.support_level}")
-                if ai.pressure_level:
-                    lines.append(f"- **压力位**: {ai.pressure_level}")
-                lines.append(f"- **上涨空间**: {ai.upside_space}")
-                if ai.target_price:
-                    lines.append(f"- **目标价位**: {ai.target_price}")
-                lines.append(f"- **介入时机**: {ai.entry_timing}")
-                lines.append(f"- **建议仓位**: {ai.position_size}")
-                if ai.stop_loss:
-                    lines.append(f"- **止损位置**: {ai.stop_loss}")
+                lines.append("")
+                lines.append("**辨识度与人气**")
+                lines.append(f"- 辨识度: {ai.recognition_level}")
+                lines.append(f"- 真龙判定: {'是 ✓' if ai.is_true_dragon else '否'}")
+                lines.append(f"- 题材卡位: {ai.sector_position}")
+                lines.append("")
+                lines.append("**资金合力**")
+                lines.append(f"- 换手状态: {ai.turnover_status}")
+                lines.append(f"- 量能含义: {ai.volume_meaning}")
+                lines.append(f"- 资金合力: {ai.main_force_action}")
+                lines.append("")
+                lines.append("**趋势强度**")
+                lines.append(f"- 趋势强度: {ai.trend_strength}")
+                lines.append(f"- 延续概率: {ai.continuation_probability}")
+                lines.append(f"- 加速阶段: {ai.acceleration_stage}")
+                lines.append("")
+                lines.append("**情绪周期卡位**")
+                lines.append(f"- 梯队位置: {ai.ladder_position}")
+                lines.append(f"- 空间溢价: {ai.space_premium}")
+                lines.append(f"- 周期时机: {ai.cycle_timing}")
+                lines.append(f"- 接力意愿: {ai.relay_willingness}")
+                lines.append("")
+                lines.append("**明日预期**")
+                lines.append(f"- 开盘预期: {ai.open_expectation}")
+                lines.append(f"- 盘中走势: {ai.intraday_pattern}")
+                lines.append(f"- 一致/分歧: {ai.consensus_or_divergence}")
+                lines.append("")
+                lines.append("**操作策略**")
+                lines.append(f"- 介入时机: {ai.entry_timing}")
+                lines.append(f"- 建议仓位: {ai.position_size}")
+                lines.append(f"- 退出策略: {ai.exit_strategy}")
                 if ai.risk_warning:
-                    lines.append(f"- **风险提示**: {'; '.join(ai.risk_warning)}")
+                    lines.append(f"- 风险提示: {'; '.join(ai.risk_warning)}")
                 lines.append("")
             lines.append("")
 
